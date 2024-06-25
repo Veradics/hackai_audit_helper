@@ -2,6 +2,9 @@ import os
 import openai
 import streamlit as st
 import time
+from openai import OpenAI
+client = OpenAI()
+  
 
 # Check if the key exists in st.secrets
 if "OPENAI_API_KEY" in st.secrets:
