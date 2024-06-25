@@ -1,6 +1,5 @@
 import streamlit as st
 import openai
-from typing_extensions import override
 from openai import AssistantEventHandler
 
 # Set up your OpenAI API key
@@ -19,19 +18,16 @@ def get_assistant_response(prompt):
         role="user",
         content=prompt
     )
-    
-    # First, we create an EventHandler class to define
-    # how we want to handle the events in the response stream.
+
+    # Create an EventHandler class to handle the events in the response stream
     class EventHandler(AssistantEventHandler):
         def __init__(self):
             self.response_text = ""
 
-        @override
         def on_text_created(self, text) -> None:
             self.response_text += text + " "
             st.write(f"assistant > {self.response_text.strip()}")
 
-        @override
         def on_text_delta(self, delta, snapshot):
             self.response_text += delta.value
             st.write(self.response_text.strip(), end="", flush=True)
@@ -48,10 +44,8 @@ def get_assistant_response(prompt):
                     for output in delta.code_interpreter.outputs:
                         if output.type == "logs":
                             st.write(output.logs)
- 
-    # Then, we use the `stream` SDK helper 
-    # with the `EventHandler` class to create the Run 
-    # and stream the response.
+
+    # Use the `stream` SDK helper with the `EventHandler` class to create the Run and stream the response
     with client.beta.threads.runs.stream(
         thread_id=thread.id,
         assistant_id=assistant_id,
