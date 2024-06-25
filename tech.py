@@ -1,6 +1,7 @@
 import magic
 import tempfile
 import time
+import streamlit as st
 
 def check_file_type(file):
     mime = magic.Magic(mime=True)
@@ -16,11 +17,24 @@ def check_file_type(file):
     return file_type
 
 
-def get_file_text(file):
-    with open(file) as f:
-        text = f.read()
+# def get_file_text(file):
+#     with open(file) as f:
+#         text = f.read()
 
-    return text
+#     return text
+
+def get_file_text(uploaded_file):
+    # Ensure that the file is read correctly
+    if uploaded_file is not None:
+        try:
+            file_text = uploaded_file.read().decode("utf-8")
+            return file_text
+        except Exception as e:
+            st.error(f"Error reading file: {e}")
+            return None
+    else:
+        st.error("No file uploaded")
+        return None
 
 
 # create a temporary file
