@@ -5,15 +5,17 @@ import streamlit as st
 import fitz 
 import docx
 import os
-from dotenv import load_dotenv
 
 import openai
 
-# Load environment variables from .env file
-load_dotenv()
-
 # Set your OpenAI API key from environment variable
 openai.api_key = os.getenv('OPENAI_API_KEY')
+
+# Check if the API key is set correctly
+if not openai.api_key:
+    st.error("No OpenAI API key provided. Set it in Streamlit secrets.")
+else:
+    st.write("OpenAI API key loaded.")
 
 def send_prompt_to_assistant(prompt, assistant_id='asst_HGHaPA96oqQZJIX1532GTUoK'):
     try:
