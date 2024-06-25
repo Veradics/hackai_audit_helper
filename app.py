@@ -4,7 +4,7 @@ from tech import *
 # PAGES
 # home
 def home():
-    st.title('EcoAudit')
+    st.title('AuditHelper')
     st.header("AI environmental report evaluation")
     st.write('Choose one option:')
 
