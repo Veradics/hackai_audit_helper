@@ -3,14 +3,13 @@ import openai
 import streamlit as st
 import time
 
-
 # Check if the key exists in st.secrets
 if "OPENAI_API_KEY" in st.secrets:
     openai.api_key = st.secrets["OPENAI_API_KEY"]
 else:
     st.error("No OpenAI API key provided. Set it in Streamlit secrets.")
 
-client = openai.OpenAI(openai.api_key)
+client = openai.OpenAI(api_key=openai.api_key)
 
 def uploaded_file_id(file):
     file = openai.files.create(
