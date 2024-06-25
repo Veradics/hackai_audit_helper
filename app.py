@@ -2,6 +2,18 @@ import streamlit as st
 from tech import *  # Ensure tech.py contains all necessary functions
 # import pycountry
 
+
+import openai
+
+# Set your OpenAI API key from environment variable
+openai.api_key = os.getenv('OPENAI_API_KEY')
+
+# Check if the API key is set correctly
+if not openai.api_key:
+    st.error("No OpenAI API key provided. Set it in Streamlit secrets.")
+else:
+    st.write("OpenAI API key loaded.")
+
 # PAGES
 # home
 def home():
