@@ -22,14 +22,18 @@ def get_assistant_response(prompt):
     
     # First, we create a EventHandler class to define
     # how we want to handle the events in the response stream.
-    class EventHandler(AssistantEventHandler):    
+    class EventHandler(AssistantEventHandler):
+        def __init__(self):
+            self.response_text = ""
+
         @override
         def on_text_created(self, text) -> None:
             st.write(f"\nassistant > ")
 
         @override
         def on_text_delta(self, delta, snapshot):
-            st.write(delta.value)
+            self.response_text += delta.value
+            st.write(self.response_text)
 
         def on_tool_call_created(self, tool_call):
             st.write(f"\nassistant > {tool_call.type}\n")
@@ -39,10 +43,10 @@ def get_assistant_response(prompt):
                 if delta.code_interpreter.input:
                     st.write(delta.code_interpreter.input)
                 if delta.code_interpreter.outputs:
-                    st.write(f"\n\noutput >", flush=True)
+                    st.write(f"\n\noutput >")
                     for output in delta.code_interpreter.outputs:
                         if output.type == "logs":
-                            st.write(f"\n{output.logs}", flush=True)
+                            st.write(f"\n{output.logs}")
 
     # Then, we use the `stream` SDK helper 
     # with the `EventHandler` class to create the Run 
