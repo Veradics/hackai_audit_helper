@@ -3,5 +3,6 @@ python-magic==0.4.27
 libmagic==1.0
 PyMuPDF==1.24.6
 python-docx==0.8.11
-openai==0.27.0  # Make sure to include the OpenAI package for API interaction
+python-dotenv==0.21.0
+openai==0.27.0
 # pycountry==24.6.1   

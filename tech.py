@@ -5,8 +5,12 @@ import streamlit as st
 import fitz 
 import docx
 import os
+from dotenv import load_dotenv
 
 import openai
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Set your OpenAI API key from environment variable
 openai.api_key = os.getenv('OPENAI_API_KEY')
