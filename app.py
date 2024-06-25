@@ -7,11 +7,29 @@ openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 client = openai.OpenAI()
 
-my_assistants = client.beta.assistants.list(
-    order="desc",
-    limit="20",
+
+thread = client.beta.threads.create()
+
+message = client.beta.threads.messages.create(
+  thread_id=thread.id,
+  role="user",
+  content="I need to solve the equation `3x + 11 = 14`. Can you help me?"
 )
-st.write(my_assistants.data)
+
+run = client.beta.threads.runs.create_and_poll(
+  thread_id=thread.id,
+  assistant_id='asst_HGHaPA96oqQZJIX1532GTUoK',
+  instructions="Please address the user as Jane Doe. The user has a premium account."
+)
+
+
+if run.status == 'completed': 
+  messages = client.beta.threads.messages.list(
+    thread_id=thread.id
+  )
+  st.write(messages)
+else:
+  st.write(run.status)
 
 # Function to get response from the specific OpenAI assistant
 def get_assistant_response(prompt, assistant_id):
