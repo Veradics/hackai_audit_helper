@@ -5,7 +5,7 @@ import openai
 # Set up your OpenAI API key
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-client = openai.OpenAI(openai.api_key )
+client = openai.OpenAI()
 
 # Function to get response from the specific OpenAI assistant
 def get_assistant_response(prompt, assistant_id):
