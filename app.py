@@ -1,6 +1,7 @@
 import streamlit as st
 from tech import *  # Ensure tech.py contains all necessary functions
 # import pycountry
+import os
 
 
 import openai
