@@ -11,6 +11,8 @@ if "OPENAI_API_KEY" in st.secrets:
 else:
     st.error("No OpenAI API key provided. Set it in Streamlit secrets.")
 
+client = openai.OpenAI(openai.api_key)
+
 def uploaded_file_id(file):
     file = openai.files.create(
     file=open(file, "rb"),
