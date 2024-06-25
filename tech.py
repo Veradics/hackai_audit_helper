@@ -25,6 +25,7 @@ def check_file_type(file):
 
 #     return text
 
+# Function to extract text from PDF
 def get_pdf_text(uploaded_file):
     try:
         pdf_document = fitz.open(stream=uploaded_file.read(), filetype="pdf")
@@ -37,6 +38,7 @@ def get_pdf_text(uploaded_file):
         st.error(f"Error reading PDF file: {e}")
         return None
 
+# Function to extract text from DOCX
 def get_doc_text(uploaded_file):
     try:
         doc = docx.Document(uploaded_file)
@@ -46,6 +48,7 @@ def get_doc_text(uploaded_file):
         st.error(f"Error reading DOC file: {e}")
         return None
 
+# Function to extract text from TXT
 def get_txt_text(uploaded_file):
     try:
         return uploaded_file.read().decode("utf-8")
@@ -54,12 +57,13 @@ def get_txt_text(uploaded_file):
         return None
 
 
+# Function to determine the file type and extract text
 def get_file_text(uploaded_file, file_type):
     if file_type == "pdf":
         return get_pdf_text(uploaded_file)
-    elif file_type == "docx":
+    elif file_type == "vnd.openxmlformats-officedocument.wordprocessingml.document":
         return get_doc_text(uploaded_file)
-    elif file_type == "txt":
+    elif file_type == "plain":
         return get_txt_text(uploaded_file)
     else:
         st.error("Unsupported file type")

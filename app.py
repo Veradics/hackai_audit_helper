@@ -98,12 +98,32 @@ def block_report_form():
     st.session_state.user_text = st.text_area("Enter your text here:")
     st.session_state.uploaded_file = st.file_uploader("Or choose a file:", type=['pdf', 'docx', 'txt'])
 
+
     st.session_state.report_block_text = None
     if st.session_state.user_text != '':
         st.session_state.report_block_text = st.session_state.user_text
     elif st.session_state.uploaded_file:
         st.session_state.uploaded_report_type = check_file_type(st.session_state.uploaded_report)
         st.session_state.report_block_text = get_file_text(st.session_state.uploaded_file, st.session_state.uploaded_report_type)
+
+        file_type = st.session_state.uploaded_file.type.split('/')[-1]
+        st.session_state.uploaded_report_type = file_type
+        st.session_state.report_block_text = get_file_text(st.session_state.uploaded_file, file_type)
+
+    # def block_report_form():
+    # uploaded_file = st.file_uploader("Choose a file", type=["pdf", "docx", "txt"])
+    # if uploaded_file is not None:
+    #     file_type = uploaded_file.type.split('/')[-1]
+    #     st.session_state.uploaded_file = uploaded_file
+    #     st.session_state.uploaded_report_type = file_type
+    #     extracted_text = get_file_text(uploaded_file, file_type)
+    #     if extracted_text:
+    #         st.session_state.report_block_text = extracted_text
+    #         st.write(st.session_state.report_block_text)
+    #         if st.button("Send to OpenAI API"):
+    #             api_response = query_openai_api(extracted_text)
+    #             st.write("Response from OpenAI API:")
+    #             st.write(api_response)
 
     # button to continue
     if st.session_state.report_block_text:
