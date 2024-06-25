@@ -1,4 +1,3 @@
 streamlit==1.33.0
 python-magic==0.4.27
-python-magic-bin==0.4.18
 libmagic==1.0
