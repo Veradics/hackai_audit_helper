@@ -25,19 +25,19 @@ def get_assistant_response(prompt):
     class EventHandler(AssistantEventHandler):    
         @override
         def on_text_created(self, text) -> None:
-            st.write(f"\nassistant > ", end="", flush=True)
+            st.write(f"\nassistant > ")
 
         @override
         def on_text_delta(self, delta, snapshot):
-            st.write(delta.value, end="", flush=True)
+            st.write(delta.value)
 
         def on_tool_call_created(self, tool_call):
-            st.write(f"\nassistant > {tool_call.type}\n", flush=True)
+            st.write(f"\nassistant > {tool_call.type}\n")
 
         def on_tool_call_delta(self, delta, snapshot):
             if delta.type == 'code_interpreter':
                 if delta.code_interpreter.input:
-                    st.write(delta.code_interpreter.input, end="", flush=True)
+                    st.write(delta.code_interpreter.input)
                 if delta.code_interpreter.outputs:
                     st.write(f"\n\noutput >", flush=True)
                     for output in delta.code_interpreter.outputs:
@@ -50,7 +50,7 @@ def get_assistant_response(prompt):
     with client.beta.threads.runs.stream(
         thread_id=thread.id,
         assistant_id=assistant_id,
-        instructions="Please address the user as Jane Doe. The user has a premium account.",
+        #instructions="Please address the user as Jane Doe. The user has a premium account.",
         event_handler=EventHandler(),
     ) as stream:
         stream.until_done()
