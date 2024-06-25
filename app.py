@@ -2,6 +2,8 @@ import os
 import openai
 import streamlit as st
 
+st.write(st.secrets)
+
 if "OPENAI_API_KEY" in st.secrets:
     openai.api_key = st.secrets["OPENAI_API_KEY"]
 else:
