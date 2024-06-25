@@ -24,6 +24,7 @@ def get_assistant_response(prompt):
     # how we want to handle the events in the response stream.
     class EventHandler(AssistantEventHandler):
         def __init__(self):
+            super().__init__()  # Call the parent class's __init__ method
             self.response_text = ""
 
         @override
@@ -33,7 +34,7 @@ def get_assistant_response(prompt):
         @override
         def on_text_delta(self, delta, snapshot):
             self.response_text += delta.value
-            st.write(self.response_text)
+            st.write(self.response_text.strip(), end="", flush=True)
 
         def on_tool_call_created(self, tool_call):
             st.write(f"\nassistant > {tool_call.type}\n")
