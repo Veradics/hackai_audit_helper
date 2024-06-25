@@ -106,6 +106,33 @@ def block_report_form():
             st.session_state.page = "block report check 2"
             st.experimental_rerun()
 
+# # block report check 2
+# def block_report_results():
+#     st.title("Block report check")
+#     placeholder = st.empty()
+
+#     if 'report_block_text' in st.session_state:    
+#         # running the analysis process
+#         placeholder.text('Analysis running...')
+#         block_analysis_results = run_block_report_analysis(st.session_state.report_block_text)
+#         st.session_state.block_analysis_results = block_analysis_results
+#         placeholder.text('Analysis completed!')
+
+#         # general feedback and recommendations in short format
+#         st.subheader("General feedback")
+#         st.write(st.session_state.block_analysis_results['short_feedback'])
+
+#         st.subheader("General recommendations")
+#         st.write(st.session_state.block_analysis_results['short_recommendations'])
+
+#         # buttons
+#         if st.button('generate report block using recommendations and new information'):
+#             st.session_state.page = 'block report generation'
+#             st.experimental_rerun()
+#         if st.button('home'):
+#             st.session_state.page = 'home'
+#             st.experimental_rerun()
+
 # block report check 2
 def block_report_results():
     st.title("Block report check")
@@ -124,6 +151,12 @@ def block_report_results():
 
         st.subheader("General recommendations")
         st.write(st.session_state.block_analysis_results['short_recommendations'])
+
+        # Send to OpenAI API
+        if st.button("Send to OpenAI API"):
+            api_response = send_prompt_to_assistant(st.session_state.report_block_text)
+            st.write("Response from OpenAI API:")
+            st.write(api_response)
 
         # buttons
         if st.button('generate report block using recommendations and new information'):

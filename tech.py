@@ -4,6 +4,28 @@ import time
 import streamlit as st
 import fitz 
 import docx
+import os
+
+import openai
+
+# Set your OpenAI API key from environment variable
+openai.api_key = os.getenv('OPENAI_API_KEY')
+
+def send_prompt_to_assistant(prompt, assistant_id='asst_HGHaPA96oqQZJIX1532GTUoK'):
+    try:
+        response = openai.Completion.create(
+            engine="davinci-codex",  # Or use the appropriate engine for your assistant
+            prompt=prompt,
+            max_tokens=1000,
+            stop=None,
+            n=1,
+            temperature=0.5,
+            logprobs=None,
+            user=assistant_id
+        )
+        return response.choices[0].text.strip()
+    except Exception as e:
+        return f"An error occurred: {e}"
 
 def check_file_type(file):
     mime = magic.Magic(mime=True)
