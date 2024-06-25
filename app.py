@@ -1,49 +1,69 @@
 import os
 import openai
 import streamlit as st
+import time
 
-st.write(st.secrets)
-
+# Check if the key exists in st.secrets
 if "OPENAI_API_KEY" in st.secrets:
     openai.api_key = st.secrets["OPENAI_API_KEY"]
 else:
     st.error("No OpenAI API key provided. Set it in Streamlit secrets.")
 
-# Debugging: Print the API key to check if it's loaded correctly (only for debugging purposes)
-st.write(f"Debug: OpenAI API Key Loaded: {openai.api_key}")
-
-# Check if the API key is set correctly
-if not openai.api_key:
-    st.error("No OpenAI API key provided. Set it in Streamlit secrets.")
-else:
-    st.write("OpenAI API key loaded.")
-
-def send_prompt_to_assistant(prompt, assistant_id='asst_HGHaPA96oqQZJIX1532GTUoK'):
+def upload_file(file):
     try:
-        response = openai.Completion.create(
-            engine="text-davinci-003",  # Or use the appropriate engine for your assistant
-            prompt=prompt,
-            max_tokens=1000,
-            stop=None,
-            n=1,
-            temperature=0.5,
-            user=assistant_id
+        response = openai.File.create(
+            file=openai.FileHandle(file),
+            purpose='code_interpreter'
         )
-        return response.choices[0].text.strip()
+        return response.id
     except Exception as e:
         return f"An error occurred: {e}"
 
-# Example Streamlit app to test the API key
+def send_file_to_assistant(file_id, assistant_id='asst_HGHaPA96oqQZJIX1532GTUoK'):
+    try:
+        client = openai.Client()
+        assistant = client.beta.assistants.retrieve(assistant_id)
+        job = assistant.jobs.create(
+            tool="code_interpreter",
+            tool_resources={
+                "code_interpreter": {
+                    "file_ids": [file_id]
+                }
+            }
+        )
+        return job
+    except Exception as e:
+        return f"An error occurred: {e}"
+
 def main():
-    st.title('Test OpenAI API Key')
-    prompt = st.text_input("Enter a prompt:")
-    if st.button("Send to OpenAI"):
-        if prompt:
-            response = send_prompt_to_assistant(prompt)
-            st.write("Response from OpenAI API:")
-            st.write(response)
+    st.title('Upload a file and evaluate it with OpenAI Assistant')
+    uploaded_file = st.file_uploader("Choose a file", type=['csv'])
+
+    if uploaded_file is not None:
+        st.write("File uploaded successfully.")
+        file_id = upload_file(uploaded_file)
+        if file_id:
+            st.write(f"File ID: {file_id}")
+            job = send_file_to_assistant(file_id)
+            if isinstance(job, str):
+                st.error(job)  # Display error message if any
+            else:
+                st.write("Job created successfully. Waiting for the result...")
+                # Poll for job completion
+                while True:
+                    client = openai.Client()
+                    job = client.beta.jobs.retrieve(job.id)
+                    if job.status == "succeeded":
+                        st.write("Job completed successfully.")
+                        st.write(job.result)
+                        break
+                    elif job.status == "failed":
+                        st.error("Job failed.")
+                        break
+                    st.write("Waiting for job to complete...")
+                    time.sleep(5)
         else:
-            st.write("Please enter a prompt.")
+            st.write("Failed to upload the file.")
 
 if __name__ == "__main__":
     main()
