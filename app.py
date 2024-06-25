@@ -102,14 +102,14 @@ def block_report_form():
     if st.session_state.user_text != '':
         st.session_state.report_block_text = st.session_state.user_text
     elif st.session_state.uploaded_file:
-        st.session_state.report_block_text = get_file_text(st.session_state.uploaded_file)
+        st.session_state.uploaded_report_type = check_file_type(st.session_state.uploaded_report)
+        st.session_state.report_block_text = get_file_text(st.session_state.uploaded_file, st.session_state.uploaded_report_type)
 
     # button to continue
     if st.session_state.report_block_text:
         if st.button("continue"):
             st.session_state.page = "block report check 2"
             st.rerun()
-
 
 # block report check 2
 def block_report_results():
