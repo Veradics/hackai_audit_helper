@@ -1,5 +1,6 @@
 import streamlit as st
 import openai
+from typing_extensions import override
 from openai import AssistantEventHandler
 
 # Set up your OpenAI API key
@@ -18,34 +19,34 @@ def get_assistant_response(prompt):
         role="user",
         content=prompt
     )
-
-    # Create an EventHandler class to handle the events in the response stream
-    class EventHandler(AssistantEventHandler):
-        def __init__(self):
-            self.response_text = ""
-
+    
+    # First, we create a EventHandler class to define
+    # how we want to handle the events in the response stream.
+    class EventHandler(AssistantEventHandler):    
+        @override
         def on_text_created(self, text) -> None:
-            self.response_text += text + " "
-            st.write(f"assistant > {self.response_text.strip()}")
+            st.write(f"\nassistant > ", end="", flush=True)
 
+        @override
         def on_text_delta(self, delta, snapshot):
-            self.response_text += delta.value
-            st.write(self.response_text.strip(), end="", flush=True)
+            st.write(delta.value, end="", flush=True)
 
         def on_tool_call_created(self, tool_call):
-            st.write(f"assistant > {tool_call.type}")
+            st.write(f"\nassistant > {tool_call.type}\n", flush=True)
 
         def on_tool_call_delta(self, delta, snapshot):
             if delta.type == 'code_interpreter':
                 if delta.code_interpreter.input:
-                    st.write(delta.code_interpreter.input)
+                    st.write(delta.code_interpreter.input, end="", flush=True)
                 if delta.code_interpreter.outputs:
-                    st.write("output >")
+                    st.write(f"\n\noutput >", flush=True)
                     for output in delta.code_interpreter.outputs:
                         if output.type == "logs":
-                            st.write(output.logs)
+                            st.write(f"\n{output.logs}", flush=True)
 
-    # Use the `stream` SDK helper with the `EventHandler` class to create the Run and stream the response
+    # Then, we use the `stream` SDK helper 
+    # with the `EventHandler` class to create the Run 
+    # and stream the response.
     with client.beta.threads.runs.stream(
         thread_id=thread.id,
         assistant_id=assistant_id,
@@ -53,6 +54,7 @@ def get_assistant_response(prompt):
         event_handler=EventHandler(),
     ) as stream:
         stream.until_done()
+
 
 # Streamlit app
 st.title('OpenAI Assistant')
