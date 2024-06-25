@@ -3,25 +3,23 @@ import openai
 import streamlit as st
 import time
 
+client = openai.Client()
+
 # Check if the key exists in st.secrets
 if "OPENAI_API_KEY" in st.secrets:
     openai.api_key = st.secrets["OPENAI_API_KEY"]
 else:
     st.error("No OpenAI API key provided. Set it in Streamlit secrets.")
 
-def upload_file(file):
-    try:
-        response = openai.File.create(
-            file=openai.FileHandle(file),
-            purpose='code_interpreter'
+def uploaded_file_id(file):
+    file = client.files.create(
+    file=open(file, "rb"),
+        purpose='assistants'
         )
-        return response.id
-    except Exception as e:
-        return f"An error occurred: {e}"
+    return file.id
 
 def send_file_to_assistant(file_id, assistant_id='asst_HGHaPA96oqQZJIX1532GTUoK'):
     try:
-        client = openai.Client()
         assistant = client.beta.assistants.retrieve(assistant_id)
         job = assistant.jobs.create(
             tool="code_interpreter",
@@ -34,14 +32,15 @@ def send_file_to_assistant(file_id, assistant_id='asst_HGHaPA96oqQZJIX1532GTUoK'
         return job
     except Exception as e:
         return f"An error occurred: {e}"
+    
 
 def main():
     st.title('Upload a file and evaluate it with OpenAI Assistant')
-    uploaded_file = st.file_uploader("Choose a file", type=['csv'])
+    uploaded_file = st.file_uploader("Choose a file", type=['pdf', 'docx'])
 
     if uploaded_file is not None:
         st.write("File uploaded successfully.")
-        file_id = upload_file(uploaded_file)
+        file_id = uploaded_file_id(uploaded_file)
         if file_id:
             st.write(f"File ID: {file_id}")
             job = send_file_to_assistant(file_id)
