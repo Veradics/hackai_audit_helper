@@ -1,46 +1,59 @@
 import streamlit as st
 import openai
-
+from typing_extensions import override
+from openai import AssistantEventHandler
 
 # Set up your OpenAI API key
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 client = openai.OpenAI()
 
+assistant_id = 'asst_HGHaPA96oqQZJIX1532GTUoK'
 
-thread = client.beta.threads.create()
+# Define a function to get assistant response
+def get_assistant_response(prompt):
+    thread = client.beta.threads.create()
 
-message = client.beta.threads.messages.create(
-  thread_id=thread.id,
-  role="user",
-  content="I need to solve the equation `3x + 11 = 14`. Can you help me?"
-)
-
-run = client.beta.threads.runs.create_and_poll(
-  thread_id=thread.id,
-  assistant_id='asst_HGHaPA96oqQZJIX1532GTUoK',
-  instructions="Please address the user as Jane Doe. The user has a premium account."
-)
-
-
-if run.status == 'completed': 
-  messages = client.beta.threads.messages.list(
-    thread_id=thread.id
-  )
-  st.write(messages)
-else:
-  st.write(run.status)
-
-# Function to get response from the specific OpenAI assistant
-def get_assistant_response(prompt, assistant_id):
-    response = openai.ChatCompletion.create(
-        model="text-davinci-003",  # or another model if specified for your assistant
-        messages=[
-            {"role": "system", "content": f"You are the assistant with ID {assistant_id}."},
-            {"role": "user", "content": prompt}
-        ]
+    message = client.beta.threads.messages.create(
+        thread_id=thread.id,
+        role="user",
+        content=prompt
     )
-    return response.choices[0].message['content'].strip()
+    
+    # First, we create a EventHandler class to define
+    # how we want to handle the events in the response stream.
+    class EventHandler(AssistantEventHandler):    
+        @override
+        def on_text_created(self, text) -> None:
+            st.write(f"assistant > {text}")
+
+        @override
+        def on_text_delta(self, delta, snapshot):
+            st.write(delta.value, end="", flush=True)
+
+        def on_tool_call_created(self, tool_call):
+            st.write(f"assistant > {tool_call.type}")
+
+        def on_tool_call_delta(self, delta, snapshot):
+            if delta.type == 'code_interpreter':
+                if delta.code_interpreter.input:
+                    st.write(delta.code_interpreter.input)
+                if delta.code_interpreter.outputs:
+                    st.write("output >")
+                    for output in delta.code_interpreter.outputs:
+                        if output.type == "logs":
+                            st.write(output.logs)
+ 
+    # Then, we use the `stream` SDK helper 
+    # with the `EventHandler` class to create the Run 
+    # and stream the response.
+    with client.beta.threads.runs.stream(
+        thread_id=thread.id,
+        assistant_id=assistant_id,
+        instructions="Please address the user as Jane Doe. The user has a premium account.",
+        event_handler=EventHandler(),
+    ) as stream:
+        stream.until_done()
 
 # Streamlit app
 st.title('OpenAI Assistant')
@@ -48,12 +61,8 @@ st.title('OpenAI Assistant')
 # Input prompt from user
 user_input = st.text_input("Ask your assistant:")
 
-if st.button('Submit'):
+if st.button('Get Response'):
     if user_input:
-        with st.spinner('Generating response...'):
-            assistant_id = "asst_HGHaPA96oqQZJIX1532GTUoK"  # Your assistant ID
-            response = get_assistant_response(user_input, assistant_id)
-        st.success('Response:')
-        st.write(response)
+        get_assistant_response(user_input)
     else:
-        st.warning('Please enter a question.')
+        st.write("Please enter a question.")
