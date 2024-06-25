@@ -20,16 +20,21 @@ def get_assistant_response(prompt):
         content=prompt
     )
     
-    # First, we create a EventHandler class to define
+    # First, we create an EventHandler class to define
     # how we want to handle the events in the response stream.
-    class EventHandler(AssistantEventHandler):    
+    class EventHandler(AssistantEventHandler):
+        def __init__(self):
+            self.response_text = ""
+
         @override
         def on_text_created(self, text) -> None:
-            st.write(f"assistant > {text}")
+            self.response_text += text + " "
+            st.write(f"assistant > {self.response_text.strip()}")
 
         @override
         def on_text_delta(self, delta, snapshot):
-            st.write(delta.value, end="", flush=True)
+            self.response_text += delta.value
+            st.write(self.response_text.strip(), end="", flush=True)
 
         def on_tool_call_created(self, tool_call):
             st.write(f"assistant > {tool_call.type}")
