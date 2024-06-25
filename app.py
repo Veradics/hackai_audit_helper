@@ -3,7 +3,7 @@ import openai
 import streamlit as st
 import time
 
-client = openai.Client()
+client = openai.OpenAI()
 
 # Check if the key exists in st.secrets
 if "OPENAI_API_KEY" in st.secrets:
@@ -12,7 +12,7 @@ else:
     st.error("No OpenAI API key provided. Set it in Streamlit secrets.")
 
 def uploaded_file_id(file):
-    file = client.files.create(
+    file = openai.files.create(
     file=open(file, "rb"),
         purpose='assistants'
         )
