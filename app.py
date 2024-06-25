@@ -7,6 +7,12 @@ openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 client = openai.OpenAI()
 
+my_assistants = client.beta.assistants.list(
+    order="desc",
+    limit="20",
+)
+st.write(my_assistants.data)
+
 # Function to get response from the specific OpenAI assistant
 def get_assistant_response(prompt, assistant_id):
     response = openai.ChatCompletion.create(
