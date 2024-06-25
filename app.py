@@ -1,5 +1,6 @@
 import streamlit as st
 from tech import *
+import pycountry
 
 # PAGES
 # home
@@ -22,7 +23,13 @@ def full_report_form():
     st.title("Full report check")
     st.subheader("Step 1. Fill in the form:")
 
-    st.session_state.country = st.selectbox('Country', ['Israel', 'Russia'], index=None)
+    
+
+    # Get the list of country names from pycountry
+    countries = [country.name for country in pycountry.countries]
+
+    # st.session_state.country = st.selectbox('Country', ['Israel', 'Russia'], index=None)
+    st.session_state.country = st.selectbox('Country', countries)
     st.session_state.industry = st.selectbox('Industry', ['Banking', 'Mining', 'Manufacturing'], index=None)
     st.session_state.company_size = st.selectbox('Company size:', ['10+', '100+', '1_000+', '10_000+'], index=None)
     st.session_state.standards = st.selectbox('Standards:', ['TCFD', 'GRI', 'SASB', 'ISO14001'])
