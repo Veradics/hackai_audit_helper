@@ -85,6 +85,7 @@ def full_report_results():
         st.session_state.page = "home"
         st.rerun()
 
+
 # block report check 1
 def block_report_form():
     st.title("Block report check")
@@ -95,20 +96,49 @@ def block_report_form():
 
     # input report block
     st.subheader('Step 2. Type or upload the report block text')
-    st.session_state.user_text = st.text_area("Enter your text here:")
-    st.session_state.uploaded_file = st.file_uploader("Or choose a file:", type=['pdf', 'docx', 'txt'])
-
+    user_text = st.text_area("Enter your text here:")
+    uploaded_file = st.file_uploader("Or choose a file:", type=['pdf', 'docx', 'txt'])
 
     st.session_state.report_block_text = None
-    if st.session_state.user_text != '':
-        st.session_state.report_block_text = st.session_state.user_text
-    elif st.session_state.uploaded_file:
-        st.session_state.uploaded_report_type = check_file_type(st.session_state.uploaded_report)
-        st.session_state.report_block_text = get_file_text(st.session_state.uploaded_file, st.session_state.uploaded_report_type)
-
-        file_type = st.session_state.uploaded_file.type.split('/')[-1]
+    if user_text:
+        st.session_state.report_block_text = user_text
+    elif uploaded_file:
+        file_type = uploaded_file.type.split('/')[-1]
+        st.session_state.uploaded_file = uploaded_file
         st.session_state.uploaded_report_type = file_type
-        st.session_state.report_block_text = get_file_text(st.session_state.uploaded_file, file_type)
+        st.session_state.report_block_text = get_file_text(uploaded_file, file_type)
+
+    # button to continue
+    if st.session_state.report_block_text:
+        if st.button("continue"):
+            st.session_state.page = "block report check 2"
+            st.experimental_rerun()
+
+
+# # block report check 1
+# def block_report_form():
+#     st.title("Block report check")
+#     st.subheader("Step 1. Fill in the form:")
+
+#     st.session_state.standards = st.selectbox('Standards:', ['TCFD', 'GRI', 'SASB', 'ISO14001'])
+#     st.session_state.block = st.selectbox('Report block:', ['block 1', 'block 2'])
+
+#     # input report block
+#     st.subheader('Step 2. Type or upload the report block text')
+#     st.session_state.user_text = st.text_area("Enter your text here:")
+#     st.session_state.uploaded_file = st.file_uploader("Or choose a file:", type=['pdf', 'docx', 'txt'])
+
+
+#     st.session_state.report_block_text = None
+#     if st.session_state.user_text != '':
+#         st.session_state.report_block_text = st.session_state.user_text
+#     elif st.session_state.uploaded_file:
+#         st.session_state.uploaded_report_type = check_file_type(st.session_state.uploaded_report)
+#         st.session_state.report_block_text = get_file_text(st.session_state.uploaded_file, st.session_state.uploaded_report_type)
+
+#         file_type = st.session_state.uploaded_file.type.split('/')[-1]
+#         st.session_state.uploaded_report_type = file_type
+#         st.session_state.report_block_text = get_file_text(st.session_state.uploaded_file, file_type)
 
     # def block_report_form():
     # uploaded_file = st.file_uploader("Choose a file", type=["pdf", "docx", "txt"])
