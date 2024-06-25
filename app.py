@@ -3,7 +3,9 @@ import openai
 import streamlit as st
 
 # Set your OpenAI API key from Streamlit secrets
-openai.api_key = os.getenv('OPENAI_API_KEY')
+# openai.api_key = os.getenv('OPENAI_API_KEY')
+# Set your OpenAI API key from Streamlit secrets
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Debugging: Print the API key to check if it's loaded correctly (only for debugging purposes)
 st.write(f"Debug: OpenAI API Key Loaded: {openai.api_key}")
