@@ -2,6 +2,8 @@ import magic
 import tempfile
 import time
 import streamlit as st
+import fitz 
+import docx
 
 def check_file_type(file):
     mime = magic.Magic(mime=True)
@@ -23,17 +25,44 @@ def check_file_type(file):
 
 #     return text
 
-def get_file_text(uploaded_file):
-    # Ensure that the file is read correctly
-    if uploaded_file is not None:
-        try:
-            file_text = uploaded_file.read().decode("utf-8")
-            return file_text
-        except Exception as e:
-            st.error(f"Error reading file: {e}")
-            return None
+def get_pdf_text(uploaded_file):
+    try:
+        pdf_document = fitz.open(stream=uploaded_file.read(), filetype="pdf")
+        text = ""
+        for page_num in range(len(pdf_document)):
+            page = pdf_document.load_page(page_num)
+            text += page.get_text()
+        return text
+    except Exception as e:
+        st.error(f"Error reading PDF file: {e}")
+        return None
+
+def get_doc_text(uploaded_file):
+    try:
+        doc = docx.Document(uploaded_file)
+        text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+        return text
+    except Exception as e:
+        st.error(f"Error reading DOC file: {e}")
+        return None
+
+def get_txt_text(uploaded_file):
+    try:
+        return uploaded_file.read().decode("utf-8")
+    except Exception as e:
+        st.error(f"Error reading TXT file: {e}")
+        return None
+
+
+def get_file_text(uploaded_file, file_type):
+    if file_type == "pdf":
+        return get_pdf_text(uploaded_file)
+    elif file_type == "docx":
+        return get_doc_text(uploaded_file)
+    elif file_type == "txt":
+        return get_txt_text(uploaded_file)
     else:
-        st.error("No file uploaded")
+        st.error("Unsupported file type")
         return None
 
 
