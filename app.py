@@ -35,7 +35,7 @@ def get_assistant_response(prompt):
         @override
         def on_text_delta(self, delta, snapshot):
             self.response_text += delta.value
-            self.response_placeholder.text(self.response_text.strip())
+            self.response_placeholder.markdown(f"**assistant >** {self.response_text.strip()}")
 
         def on_tool_call_created(self, tool_call):
             st.write(f"\nassistant > {tool_call.type}\n")
