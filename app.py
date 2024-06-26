@@ -1,75 +1,189 @@
 import streamlit as st
-import openai
-from typing_extensions import override
-from openai import AssistantEventHandler
+from tech import *  # Ensure tech.py contains all necessary functions
+from assistant import *
+# import pycountry
 
-# Set up your OpenAI API key
-openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-client = openai.OpenAI()
 
-assistant_id = 'asst_HGHaPA96oqQZJIX1532GTUoK'
 
-# Define a function to get assistant response
-def get_assistant_response(prompt):
-    thread = client.beta.threads.create()
+# PAGES
+# home
+def home():
+    st.title('AuditHelper')
+    st.header("AI environmental report evaluation")
+    st.write('Choose one option:')
 
-    message = client.beta.threads.messages.create(
-        thread_id=thread.id,
-        role="user",
-        content=prompt
-    )
+    # buttons
+    if st.button("check full report"):
+        st.session_state.page = "full report check 1"
+        st.rerun()
+
+    if st.button("check report block"):
+        st.session_state.page = "block report check 1"
+        st.rerun()
+
+# full report check 1
+def full_report_form():
+    st.title("Full report check")
+    st.subheader("Step 1. Fill in the form:")
+
+    st.session_state.industry = st.selectbox('Industry', ['Banking', 'Mining', 'Manufacturing'], index=None)
+    st.session_state.company_size = st.selectbox('Company size:', ['10+', '100+', '1000+', '10000+'], index=None)
+    st.session_state.standards = st.selectbox('Standards:', ['TCFD', 'GRI', 'SASB', 'ISO14001'])
+
+    st.subheader('Step 2. Upload the report')
+    uploaded_report = st.file_uploader("Choose a file", type=['pdf', 'docx', 'txt'])
+
+    if uploaded_report:
+        st.session_state.uploaded_report = uploaded_report
+        st.session_state.uploaded_report_type = uploaded_report.type.split('/')[-1]
+
+        # button to continue
+        if st.button("get results"):
+            st.session_state.page = "full report check 2"
+            st.experimental_rerun()
+
+
+
+# full report check 2
+def full_report_results():
+    st.title("Full report check")
+    # placeholder = st.empty()
+
+    if 'uploaded_report' in st.session_state:
+        get_full_report_check(st.session_state.uploaded_report)    
+
+
+    if st.button('home'):
+        st.session_state.page = "home"
+        st.experimental_rerun()
+
+
+# block report check 1
+def block_report_form():
+    st.title("Block report check")
+    st.subheader("Step 1. Fill in the form:")
+
+    st.session_state.standards = st.selectbox('Standards:', ['TCFD', 'GRI', 'SASB', 'ISO14001'])
+    st.session_state.block = st.selectbox('Report block:', ['block 1', 'block 2'])
+
+    # input report block
+    st.subheader('Step 2. Type or upload the report block text')
+    user_text = st.text_area("Enter your text here:")
+    uploaded_file = st.file_uploader("Or choose a file:", type=['pdf', 'docx', 'txt'])
+
+    st.session_state.report_block_text = None
+    st.session_state.uploaded_file = None
+    if user_text:
+        st.session_state.report_block_text = user_text
+    elif uploaded_file:
+        # file_type = uploaded_file.type.split('/')[-1]
+        st.session_state.uploaded_file = uploaded_file
+        # st.session_state.uploaded_report_type = file_type
+        # st.session_state.report_block_text = get_file_text(uploaded_file, file_type)
+
+    # button to continue
+    if st.session_state.report_block_text:
+        if st.button("continue"):
+            st.session_state.page = "block report check 2"
+            st.rerun()
+
+    elif st.session_state.uploaded_file:
+        if st.button("continue"):
+            st.session_state.page = "block report check 2"
+            st.rerun()
+
+# # block report check 2
+def block_report_results():
+    st.title("Block report check")
+    placeholder = st.empty()
+
+    if 'report_block_text' in st.session_state:    
+        get_assistant_response(st.session_state.report_block_text)
+#         # running the analysis process
+#         placeholder.text('Analysis running...')
+#         block_analysis_results = run_block_report_analysis(st.session_state.report_block_text)
+#         st.session_state.block_analysis_results = block_analysis_results
+#         placeholder.text('Analysis completed!')
+
+#         # general feedback and recommendations in short format
+#         st.subheader("General feedback")
+#         st.write(st.session_state.block_analysis_results['short_feedback'])
+
+#         st.subheader("General recommendations")
+#         st.write(st.session_state.block_analysis_results['short_recommendations'])
+
+        # buttons
+        if st.button('generate report block using recommendations and new information'):
+            st.session_state.page = 'block report generation'
+            st.experimental_rerun()
+        if st.button('home'):
+            st.session_state.page = 'home'
+            st.experimental_rerun()
     
-    # First, we create a EventHandler class to define
-    # how we want to handle the events in the response stream.
-    class EventHandler(AssistantEventHandler):
-        def __init__(self):
-            super().__init__()  # Call the parent class's __init__ method
-            self.response_text = ""
-            self.response_placeholder = st.empty()
+    if 'uploaded_report' in st.session_state:
+        get_part_report_check(st.session_state.uploaded_report)    
 
-        @override
-        def on_text_created(self, text) -> None:
-            st.write(f"\nassistant > ")
-
-        @override
-        def on_text_delta(self, delta, snapshot):
-            self.response_text += delta.value
-            self.response_placeholder.markdown(f"**assistant >** {self.response_text.strip()}")
-
-        def on_tool_call_created(self, tool_call):
-            st.write(f"\nassistant > {tool_call.type}\n")
-
-        def on_tool_call_delta(self, delta, snapshot):
-            if delta.type == 'code_interpreter':
-                if delta.code_interpreter.input:
-                    st.write(delta.code_interpreter.input)
-                if delta.code_interpreter.outputs:
-                    st.write(f"\n\noutput >")
-                    for output in delta.code_interpreter.outputs:
-                        if output.type == "logs":
-                            st.write(f"\n{output.logs}")
-
-    # Then, we use the `stream` SDK helper 
-    # with the `EventHandler` class to create the Run 
-    # and stream the response.
-    with client.beta.threads.runs.stream(
-        thread_id=thread.id,
-        assistant_id=assistant_id,
-        #instructions="Please address the user as Jane Doe. The user has a premium account.",
-        event_handler=EventHandler(),
-    ) as stream:
-        stream.until_done()
+        # buttons
+        if st.button('generate report block using recommendations and new information'):
+            st.session_state.page = 'block report generation'
+            st.experimental_rerun()
+        if st.button('home'):
+            st.session_state.page = 'home'
+            st.experimental_rerun()
 
 
-# Streamlit app
-st.title('OpenAI Assistant')
 
-# Input prompt from user
-user_input = st.text_input("Ask your assistant:")
+# block report generation
+def block_report_generation():
+    st.title('Block report generation')
+    st.subheader('Type new information:')
+    new_info_text = st.text_area("Enter your text here:")
+    placeholder = st.empty()
 
-if st.button('Get Response'):
-    if user_input:
-        get_assistant_response(user_input)
-    else:
-        st.write("Please enter a question.")
+    if new_info_text:
+        if st.button('generate'):
+            # running the generation process
+            placeholder.text('Generation running...')
+            generation_results = generate_block(st.session_state.report_block_text, new_info_text)
+            st.session_state.generation_results = generation_results
+            placeholder.text('Generation completed!')
+
+            # print generated block
+            st.session_state.generated_block_text = st.session_state.generation_results['generated_block_text']
+
+            st.subheader('Generated report block:')
+            st.write(st.session_state.generated_block_text)
+            
+            # download results
+            if 'generation_results' in st.session_state:
+                with open(st.session_state.generation_results['generated_block_file'], 'rb') as file:
+                    st.download_button(
+                        label="download new report block",
+                        data=file,
+                        file_name="generated_report_block.txt",
+                        mime="text/plain"
+                    )
+        
+        if st.button('home'):
+            st.session_state.page = "home"
+            st.rerun()
+
+# MAIN
+# initialization of the page state
+if 'page' not in st.session_state:
+    st.session_state.page = "home"
+
+# display the selected page
+if st.session_state.page == "home":
+    home()
+elif st.session_state.page == "full report check 1":
+    full_report_form()
+elif st.session_state.page == "full report check 2":
+    full_report_results()
+elif st.session_state.page == "block report check 1":
+    block_report_form()
+elif st.session_state.page == "block report check 2":
+    block_report_results()
+elif st.session_state.page == "block report generation":
+    block_report_generation()

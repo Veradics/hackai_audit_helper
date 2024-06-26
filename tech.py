@@ -4,34 +4,7 @@ import time
 import streamlit as st
 import fitz 
 import docx
-import os
 
-import openai
-
-# # Set your OpenAI API key from environment variable
-# openai.api_key = os.getenv('OPENAI_API_KEY')
-
-# # Check if the API key is set correctly
-# if not openai.api_key:
-#     st.error("No OpenAI API key provided. Set it in Streamlit secrets.")
-# else:
-#     st.write("OpenAI API key loaded.")
-
-def send_prompt_to_assistant(prompt, assistant_id='asst_HGHaPA96oqQZJIX1532GTUoK'):
-    try:
-        response = openai.Completion.create(
-            engine="davinci-codex",  # Or use the appropriate engine for your assistant
-            prompt=prompt,
-            max_tokens=1000,
-            stop=None,
-            n=1,
-            temperature=0.5,
-            logprobs=None,
-            user=assistant_id
-        )
-        return response.choices[0].text.strip()
-    except Exception as e:
-        return f"An error occurred: {e}"
 
 def check_file_type(file):
     mime = magic.Magic(mime=True)
@@ -134,6 +107,7 @@ def run_full_report_analysis(file):
     return results
 
 
+
 # run analysis for report block
 def run_block_report_analysis(text):
     short_feedback = """
@@ -172,3 +146,5 @@ def generate_block(initial_block_text, new_info):
     time.sleep(5)
 
     return results
+
+
