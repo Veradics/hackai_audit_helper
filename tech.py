@@ -1,6 +1,10 @@
 import magic
 import tempfile
 import time
+import streamlit as st
+import fitz 
+import docx
+
 
 def check_file_type(file):
     mime = magic.Magic(mime=True)
@@ -16,11 +20,55 @@ def check_file_type(file):
     return file_type
 
 
-def get_file_text(file):
-    with open(file) as f:
-        text = f.read()
+# def get_file_text(file):
+#     with open(file) as f:
+#         text = f.read()
 
-    return text
+#     return text
+
+# Function to extract text from PDF
+def get_pdf_text(uploaded_file):
+    try:
+        pdf_document = fitz.open(stream=uploaded_file.read(), filetype="pdf")
+        text = ""
+        for page_num in range(len(pdf_document)):
+            page = pdf_document.load_page(page_num)
+            text += page.get_text()
+        return text
+    except Exception as e:
+        st.error(f"Error reading PDF file: {e}")
+        return None
+
+# Function to extract text from DOCX
+def get_doc_text(uploaded_file):
+    try:
+        doc = docx.Document(uploaded_file)
+        text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+        return text
+    except Exception as e:
+        st.error(f"Error reading DOC file: {e}")
+        return None
+
+# Function to extract text from TXT
+def get_txt_text(uploaded_file):
+    try:
+        return uploaded_file.read().decode("utf-8")
+    except Exception as e:
+        st.error(f"Error reading TXT file: {e}")
+        return None
+
+
+# Function to determine the file type and extract text
+def get_file_text(uploaded_file, file_type):
+    if file_type == "pdf":
+        return get_pdf_text(uploaded_file)
+    elif file_type == "vnd.openxmlformats-officedocument.wordprocessingml.document":
+        return get_doc_text(uploaded_file)
+    elif file_type == "plain":
+        return get_txt_text(uploaded_file)
+    else:
+        st.error("Unsupported file type")
+        return None
 
 
 # create a temporary file
@@ -57,6 +105,7 @@ def run_full_report_analysis(file):
     time.sleep(5)
 
     return results
+
 
 
 # run analysis for report block
@@ -97,3 +146,5 @@ def generate_block(initial_block_text, new_info):
     time.sleep(5)
 
     return results
+
+
