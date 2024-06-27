@@ -164,7 +164,7 @@ def block_report_results():
 
     if 'block_analysis_results' in st.session_state:
         # buttons
-        if st.button('generate report block using recommendations and new information'):
+        if st.button('generate report block using new information'):
             st.session_state.page = 'block report generation'
             st.rerun()
         if st.button('home'):
