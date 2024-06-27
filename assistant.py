@@ -10,9 +10,7 @@ from openai import AssistantEventHandler
 
 # should be secrets.toml file with OPENAI_API_KEY in streanlit folder
 openai.api_key = st.secrets["OPENAI_API_KEY"]
-    
 client = openai.OpenAI()
-
 assistant_id = 'asst_HGHaPA96oqQZJIX1532GTUoK'
 
 
@@ -29,12 +27,13 @@ class EventHandler(AssistantEventHandler):
     def on_text_created(self, text) -> None:
         st.empty()
         self.response_placeholder.markdown(f"{self.response_text.strip()}") #**assistant >** 
+        # self.save_response_to_file()
         # st.write(f"\nassistant > ")
 
     @override
     def on_text_delta(self, delta, snapshot):
         self.response_text += sanitize_text(delta.value)
-        self.response_placeholder.markdown(f"{self.response_text.strip()}") #**assistant >** 
+        self.response_placeholder.markdown(f"{self.response_text.strip()}") #**assistant >**
 
     def on_tool_call_created(self, tool_call):
         st.empty()
@@ -51,6 +50,7 @@ class EventHandler(AssistantEventHandler):
                         st.write(f"\n{output.logs}")
 
 
+
 def sanitize_text(text):
     # Example regex to remove patterns like  
     clean_text = re.sub(r"【\d+:\d+†source】", "", text)
@@ -59,8 +59,10 @@ def sanitize_text(text):
 
 # Define a function to get assistant response
 def get_assistant_response(prompt):
-
-    promp_upd = "Analyze the part of the annual report for TCFD compliance: " + prompt
+    promp_upd = f"""
+    Determine which TCFD requirement disclosure are in the attached prompt and analyze 
+    it for compliance only with them: {prompt}.
+    """
 
     thread = client.beta.threads.create(
         messages=[
@@ -74,16 +76,24 @@ def get_assistant_response(prompt):
     # Then, we use the `stream` SDK helper 
     # with the `EventHandler` class to create the Run 
     # and stream the response.
+    event_handler = EventHandler()
     with client.beta.threads.runs.stream(
         thread_id=thread.id,
         assistant_id=assistant_id,
-        event_handler=EventHandler(),
+        event_handler=event_handler,
     ) as stream:
         stream.until_done()
+
+    return event_handler.response_text
 
 
 # Define a function to get assistant response
-def get_full_report_check(user_file):
+def get_full_report_check(user_file, industry="Other"):
+    # check industry
+    if industry != "Other":
+        user_prompt = f"Analyze this full annual report for TCFD compliance taking into account {industry}."
+    else:
+        user_prompt = "Analyze this full annual report for TCFD compliance."
 
     file = client.files.create(
                 file=user_file, purpose="assistants"
@@ -94,7 +104,7 @@ def get_full_report_check(user_file):
         messages=[
             {
                 "role": "user",
-                "content": "Analyze this annual report for TCFD compliance",
+                "content": user_prompt,
                 "attachments": [
                     { "file_id": file.id, "tools": [{"type": "file_search"}] }
                 ],
@@ -104,17 +114,23 @@ def get_full_report_check(user_file):
 
     # with the `EventHandler` class to create the Run 
     # and stream the response.
+    event_handler = EventHandler()
     with client.beta.threads.runs.stream(
         thread_id=thread.id,
         assistant_id=assistant_id,
         #instructions="Please address the user as Jane Doe. The user has a premium account.",
-        event_handler=EventHandler(),
+        event_handler=event_handler,
     ) as stream:
         stream.until_done()
+
+    return event_handler.response_text
 
 
 def get_part_report_check(user_file):
-
+    user_prompt = f"""
+    Determine which TCFD requirement disclosure are in the attached file and analyze 
+    the file for compliance only with them.
+    """
     file = client.files.create(
                 file=user_file, purpose="assistants"
             )
@@ -124,7 +140,7 @@ def get_part_report_check(user_file):
         messages=[
             {
                 "role": "user",
-                "content": "Analyze the part of the annual report for TCFD compliance",
+                "content": user_prompt,
                 "attachments": [
                     { "file_id": file.id, "tools": [{"type": "file_search"}] }
                 ],
@@ -134,10 +150,63 @@ def get_part_report_check(user_file):
 
     # with the `EventHandler` class to create the Run 
     # and stream the response.
+    event_handler = EventHandler()
     with client.beta.threads.runs.stream(
         thread_id=thread.id,
         assistant_id=assistant_id,
         #instructions="Please address the user as Jane Doe. The user has a premium account.",
-        event_handler=EventHandler(),
+        event_handler=event_handler,
     ) as stream:
         stream.until_done()
+
+    return event_handler.response_text
+
+
+def generate_report_block(user_block, new_info, agent_analysis_content, is_file=False):
+    # check if the user_block is file
+    if is_file:
+        user_file = client.files.create(file=user_block, purpose="assistants")
+        base_block_content = f"File ID: {user_file.id}"
+    else:
+        base_block_content = user_block
+
+    combined_text = f"""
+        Base Block:
+        {base_block_content}
+
+        New Information:
+        {new_info}
+
+        Previous analysis and recommendations:
+        {agent_analysis_content}
+
+        Generate a new block of text for the annual report considering the above information.
+
+        Output format:
+        ## Generated block:
+        <your generated block>
+        """
+
+    
+    # Create a new thread with a message that has the uploaded file's ID
+    thread = client.beta.threads.create(
+        messages=[
+            {
+                "role": "user",
+                "content": combined_text
+            }
+        ]
+    )
+
+    # with the `EventHandler` class to create the Run 
+    # and stream the response.
+    event_handler = EventHandler()
+    with client.beta.threads.runs.stream(
+        thread_id=thread.id,
+        assistant_id=assistant_id,
+        #instructions="Please address the user as Jane Doe. The user has a premium account.",
+        event_handler=event_handler,
+    ) as stream:
+        stream.until_done()
+    
+    return event_handler.response_text
