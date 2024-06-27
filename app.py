@@ -3,6 +3,27 @@ import streamlit as st
 from tech import *  # Ensure tech.py contains all necessary functions
 from assistant import *
 
+# Define the CSS for central alignment
+central_alignment_css = """
+<style>
+h1, h2, h3, h4, h5, h6 {
+    text-align: center;
+}
+
+div.stButton > button, div.stDownloadButton > button {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 200px; /* Set your desired width */
+    height: 70px; /* Set your desired height */
+}
+
+</style>
+"""
+
+# Apply the CSS
+st.markdown(central_alignment_css, unsafe_allow_html=True)
+
 
 # image
 st.image('./header_app.jpeg')
@@ -15,12 +36,12 @@ def home():
 
     description = """
     This application provides automated assessments of sustainability reports, 
-    ensuring full compliance with TCFD standards and delivering actionable insights 
+    ensuring full compliance with [TCFD](https://www.ifrs.org/sustainability/tcfd/) standards and delivering actionable insights 
     for further improvements.
     """
 
-    st.write(description)
-
+    st.markdown(description)
+    
     # state variables
     st.session_state.was_report_check = False
     st.session_state.was_block_check = False
@@ -34,8 +55,8 @@ def home():
             file_name="TCFD_checklist.docx",
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
-
-    st.markdown("[learn more about TCFD](https://www.ifrs.org/sustainability/tcfd/)")
+    
+    st.write("")
     st.write('Choose one option:')
 
     # buttons (options)
@@ -162,15 +183,14 @@ def block_report_generation():
         # running the generation process
         placeholder.text('Generation running...')
 
-        with open("response.txt", 'rb') as file:
-            if 'report_block_text' in st.session_state:    
-                new_report_block = generate_report_block(st.session_state.report_block_text, new_info_text, st.session_state.block_analysis_results)
-                st.session_state.new_report_block = new_report_block
-                st.session_state.was_block_generation = True
-            elif 'uploaded_report' in st.session_state:
-                new_report_block = generate_report_block(st.session_state.uploaded_report, new_info_text, st.session_state.block_analysis_results, is_file=True)
-                st.session_state.new_report_block = new_report_block
-                st.session_state.was_block_generation = True
+        if 'report_block_text' in st.session_state:    
+            new_report_block = generate_report_block(st.session_state.report_block_text, new_info_text, st.session_state.block_analysis_results)
+            st.session_state.new_report_block = new_report_block
+            st.session_state.was_block_generation = True
+        elif 'uploaded_report' in st.session_state:
+            new_report_block = generate_report_block(st.session_state.uploaded_report, new_info_text, st.session_state.block_analysis_results, is_file=True)
+            st.session_state.new_report_block = new_report_block
+            st.session_state.was_block_generation = True
 
         placeholder.text('Generation completed!')
     

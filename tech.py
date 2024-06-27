@@ -5,6 +5,14 @@ import streamlit as st
 # import fitz 
 # import docx
 
+def centered_text(text):
+    centered_text_html = f"""
+    <div style="text-align: center;">
+        {text}
+    </div>
+    """
+    st.markdown(centered_text_html, unsafe_allow_html=True)
+
 
 def display_response_from_file(file_path='response.txt'):
     try:
