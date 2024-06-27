@@ -4,6 +4,9 @@ from tech import *  # Ensure tech.py contains all necessary functions
 from assistant import *
 
 
+# image
+st.image('./header_app.jpeg')
+
 # PAGES
 # home
 def home():
