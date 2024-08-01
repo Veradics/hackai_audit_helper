@@ -5,6 +5,6 @@
 
 The application utilizes the API connection of ChatGPT-4o, enhanced with prompt engineering and RAG techniques. The repository includes code for deploying the demo version of the application on the Streamlit service.
 
-Streamlit link: [application](https://hackaiauditapper-mfbbaamy6tcjcvhyzbv488.streamlit.app/)
+![hackai_app_screenshot](hackai_app_screenshot.png)
 
-![alt text]([http://url/to/img.png](https://drive.google.com/file/d/1OoGRC6jNTn_02_bat5eqe9P6siauhuB4/view?usp=drive_link))
+[Streamlit application](https://hackaiauditapper-mfbbaamy6tcjcvhyzbv488.streamlit.app/)
